@@ -23,8 +23,8 @@ setup(
         ]
     },
     install_requires=[
-        'google-api-python-client==1.7.11',
-        'google-auth==1.11.2',
+        'google-api-python-client~=1.7.11',
+        'google-auth~=1.11.2',
     ],
     url="https://github.com/dolfim/django-gmailapi-backend",
     long_description_content_type='text/markdown',
