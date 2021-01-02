@@ -6,13 +6,12 @@ import logging
 
 from django.conf import settings
 from django.core.mail.backends.base import BaseEmailBackend
-from django.core.mail.message import sanitize_address
 
 import google.oauth2.credentials
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
+import googleapiclient.discovery
 
 logger = logging.getLogger(__name__)
+
 
 class GmailBackend(BaseEmailBackend):
     def __init__(self, client_id=None, client_secret=None, refresh_token=None,
@@ -33,33 +32,33 @@ class GmailBackend(BaseEmailBackend):
             client_id=self.client_id,
             client_secret=self.client_secret
         )
-        self.service = build('gmail', 'v1', credentials=credentials)
+        self.service = googleapiclient.discovery.build('gmail', 'v1', credentials=credentials, cache_discovery=False)
 
-    def send_message(self, message):
-        if not message.recipients():
+    def send_message(self, email_message):
+        if not email_message.recipients():
             return False
-        encoding = message.encoding or settings.DEFAULT_CHARSET
-        # from_email = sanitize_address(message.from_email, encoding)
-        # recipients = [sanitize_address(addr, encoding) for addr in message.recipients()]
-        # message = message.message()
-        raw_message = {'raw': base64.urlsafe_b64encode(message.message().as_string().encode()).decode()}
-        try:
-            self.service.users().messages().send(userId=self.user_id, body=raw_message).execute()
-            return True
-        except HttpError as error:
-            logger.exception('An error occurred sending the message via GMail API')
-        return False
+        raw_message = {'raw': base64.urlsafe_b64encode(email_message.message().as_bytes()).decode()}
+        return self.service.users().messages().send(userId=self.user_id, body=raw_message)
 
     def send_messages(self, email_messages):
-        """Write all messages to the stream in a thread-safe way."""
+        """Send all messages using BatchHttpRequest"""
         if not email_messages:
             return 0
         msg_count = 0
-        try:
-            for message in email_messages:
-                self.send_message(message)
+        last_exception = None
+
+        def send_callback(r_id, response, exception):
+            nonlocal msg_count, last_exception
+            if exception is not None:
+                logger.exception('An error occurred sending the message via GMail API:  %s', exception)
+                last_exception = exception
+            else:
                 msg_count += 1
-        except Exception:
-            if not self.fail_silently:
-                raise
+
+        batch = self.service.new_batch_http_request(send_callback)
+        for message in email_messages:
+            batch.add(self.send_message(message))
+        batch.execute()
+        if not self.fail_silently and last_exception:
+            raise last_exception
         return msg_count
