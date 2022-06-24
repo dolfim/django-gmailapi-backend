@@ -37,7 +37,10 @@ class GmailBackend(BaseEmailBackend):
     def send_message(self, email_message):
         if not email_message.recipients():
             return False
-        raw_message = {'raw': base64.urlsafe_b64encode(email_message.message().as_bytes()).decode()}
+        message = email_message.message()
+        if email_message.bcc:
+            email_message._set_list_header_if_not_empty(message, 'Bcc', email_message.bcc)
+        raw_message = {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode()}
         return self.service.users().messages().send(userId=self.user_id, body=raw_message)
 
     def send_messages(self, email_messages):
