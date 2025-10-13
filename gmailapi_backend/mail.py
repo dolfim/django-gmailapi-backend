@@ -28,7 +28,7 @@ class GmailBackend(BaseEmailBackend):
         credentials = google.oauth2.credentials.Credentials(
             'token',
             refresh_token=self.refresh_token,
-            token_uri='https://accounts.google.com/o/oauth2/token',
+            token_uri='https://oauth2.googleapis.com/token',
             client_id=self.client_id,
             client_secret=self.client_secret
         )
