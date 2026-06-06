@@ -84,7 +84,7 @@ def SetupOptionParser():
     parser.add_option(
         "--ugo2t", # updated_generate_oauth2_token
         action="store_true",
-        dest="updated_generate_oauth2_tokens",
+        dest="updated_generate_oauth2_token",
         help="generates a token and refresh token for a given credentials file from google cloud plataform",
     )
     parser.add_option(
