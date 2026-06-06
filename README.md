@@ -64,11 +64,9 @@ the setup of the API credentials. The following outlines the key steps:
     ```
 
 > [!NOTE]
-> OOB flow is deprecated so --generate_oauth2_token can fail.
-To overcome this issue try instead --ugo2t option with the following syntax ```sh
-    gmail_oauth2 --ugo2t \
-      --credentials_path="<credentials_relative_path>"
+> OOB flow is deprecated so ```--generate_oauth2_token``` can fail. To overcome this issue try instead ```--ugo2t``` option with the following syntax
+```sh
+gmail_oauth2 --ugo2t \
+  --credentials_path="<credentials_relative_path>" # need to be download from gcp after creating an Oauth2 client
 ```
-> [!INFO]
-> --credentials_path: need to be download from gcp after creating an Oauth2 client
 
